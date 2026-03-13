@@ -1,0 +1,257 @@
+/* ====== Shop Items ====== */
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.shop-item {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.shop-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+.shop-item.cannot-afford { opacity: 0.65; }
+
+.shop-item.owned {
+  background: #f1f8e9;
+  border-color: var(--color-primary);
+}
+
+.item-emoji { font-size: 1.8rem; }
+.item-name  { font-weight: 700; font-size: 0.85rem; }
+.item-desc  { font-size: 0.7rem; color: var(--color-text-light); }
+.item-cost  { font-size: 0.8rem; font-weight: 600; color: var(--color-coin); }
+
+.owned-badge {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.shop-item button {
+  background: var(--color-primary);
+  color: #fff;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.shop-item button:hover:not(:disabled) { background: var(--color-primary-dark); }
+
+/* ====== Market ====== */
+.market-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.market-item .item-emoji { font-size: 1.6rem; }
+.market-item .item-name  { font-weight: 700; flex: 1; }
+.market-item .item-qty   { font-size: 0.8rem; color: var(--color-text-light); }
+.market-item .item-price { font-size: 0.8rem; color: var(--color-coin); font-weight: 600; }
+
+.sell-btn {
+  background: var(--color-secondary);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+}
+
+.sell-btn:hover:not(:disabled) { background: #e65100; }
+
+/* ====== Animal Care ====== */
+.building-section {
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.building-section h3 { margin-bottom: 8px; font-size: 0.95rem; }
+
+.building-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.buy-animal-btn {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.upgrade-btn {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+.full-badge {
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.feed-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+#feed-all-btn {
+  background: #a5d6a7;
+  color: #1b5e20;
+  font-size: 0.8rem;
+}
+
+.animal-list { display: flex; flex-direction: column; gap: 8px; }
+
+.animal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.animal-emoji { font-size: 1.6rem; }
+
+.animal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.animal-name { font-weight: 700; font-size: 0.85rem; }
+
+.animal-state { font-size: 0.75rem; font-weight: 600; }
+.state-healthy  { color: var(--color-success); }
+.state-hungry   { color: var(--color-warning); }
+.state-starving { color: var(--color-danger); }
+
+.hunger-bar {
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hunger-bar > div {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+.hunger-label { font-size: 0.7rem; color: var(--color-text-light); }
+
+.feed-one-btn {
+  background: #c8e6c9;
+  color: #1b5e20;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+/* ====== Inventory ====== */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.inventory-item {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.inventory-item.empty { opacity: 0.5; }
+
+.item-qty {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--color-primary-dark);
+}
+
+.stats-list {
+  list-style: none;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stats-list li {
+  background: #f5f5f5;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--color-text);
+}
+
+/* ====== Achievements ====== */
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: box-shadow 0.2s;
+}
+
+.achievement-item.unlocked {
+  border-color: var(--color-coin);
+  background: #fffde7;
+  box-shadow: 0 2px 6px rgba(249,168,37,0.2);
+}
+
+.achievement-item.locked { opacity: 0.65; }
+
+.ach-emoji { font-size: 1.8rem; }
+
+.ach-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ach-name   { font-weight: 700; font-size: 0.9rem; }
+.ach-desc   { font-size: 0.75rem; color: var(--color-text-light); }
+.ach-reward { font-size: 0.75rem; color: var(--color-coin); font-weight: 600; }
+
+.ach-status { font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
