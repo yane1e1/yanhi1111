@@ -279,7 +279,7 @@ export class GameEngine {
     });
     document.getElementById('btn-care').addEventListener('click', () => {
       this._closePanels();
-      this.carePanel._currentBuildingId = null;
+      this.carePanel.resetBuilding();
       this.carePanel.toggle();
     });
     document.getElementById('btn-inventory').addEventListener('click', () => {

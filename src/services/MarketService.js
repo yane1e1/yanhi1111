@@ -36,9 +36,4 @@ export class MarketService {
     return { success: true, cost };
   }
 
-  // Buy seeds for planting
-  buySeed(cropType, amount = 1) {
-    const { CROPS } = /** @type {any} */ (this);
-    return { success: false, message: '請使用 CropService.plantCrop' };
-  }
 }

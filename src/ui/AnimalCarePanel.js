@@ -16,6 +16,10 @@ export class AnimalCarePanel {
     });
   }
 
+  resetBuilding() {
+    this._currentBuildingId = null;
+  }
+
   toggle() {
     this._panel.classList.toggle('open');
     if (this._panel.classList.contains('open')) this._render();
