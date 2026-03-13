@@ -8,12 +8,10 @@ export class AnimalCarePanel {
     this._bus = eventBus;
     this._panel = document.getElementById('care-panel');
     this._currentBuildingId = null;
+  }
 
-    this._bus.on('ui:buildingClick', ({ buildingId }) => {
-      this._currentBuildingId = buildingId;
-      this._render();
-      this._panel.classList.add('open');
-    });
+  setBuilding(buildingId) {
+    this._currentBuildingId = buildingId;
   }
 
   resetBuilding() {

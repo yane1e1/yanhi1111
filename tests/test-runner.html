@@ -214,8 +214,8 @@ describe('Animal', () => {
 
   it('tick produces resources after production time', () => {
     const a = new Animal({ type: 'chicken' });
-    // chicken productionTime = 3000ms
-    const produced = a.tick(3001);
+    const productionTime = ANIMALS.chicken.productionTime;
+    const produced = a.tick(productionTime + 1);
     expect(produced).toBeGreaterThanOrEqual(1);
   });
 
@@ -293,13 +293,13 @@ describe('Crop', () => {
 
   it('becomes ready after growthTime', () => {
     const c = new Crop({ type: 'wheat' });
-    c.tick(6001);
+    c.tick(CROPS.wheat.growthTime + 1);
     expect(c.isReady).toBeTruthy();
   });
 
   it('harvest returns correct feedYield', () => {
     const c = new Crop({ type: 'wheat' });
-    c.tick(6001);
+    c.tick(CROPS.wheat.growthTime + 1);
     const yield_ = c.harvest();
     expect(yield_).toBe(CROPS.wheat.feedYield);
     expect(c.harvested).toBeTruthy();
@@ -351,7 +351,7 @@ describe('ProductionService', () => {
     b.addAnimal(a.id);
 
     const svc = new ProductionService(gs, bus);
-    svc.tick(3001); // chicken productionTime = 3000ms
+    svc.tick(ANIMALS.chicken.productionTime + 1);
     expect(gs.player.getResource('egg')).toBeGreaterThanOrEqual(1);
   });
 });
@@ -450,7 +450,7 @@ describe('CropService', () => {
     const svc = new CropService(gs, bus);
     svc.plantCrop('wheat', 0);
     const cropId = gs.tiles[0];
-    gs.crops[cropId].growthTimer = 6001; // force ready
+    gs.crops[cropId].growthTimer = CROPS.wheat.growthTime + 1; // force ready
     const result = svc.harvestCrop(cropId);
     expect(result.success).toBeTruthy();
     expect(gs.player.getResource('feed')).toBe(CROPS.wheat.feedYield);

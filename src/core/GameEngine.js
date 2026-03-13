@@ -167,6 +167,13 @@ export class GameEngine {
       document.querySelectorAll('.farm-tile').forEach((t) => t.classList.remove('placeable'));
     });
 
+    this.bus.on('ui:buildingClick', ({ buildingId }) => {
+      this._closePanels();
+      this.carePanel.setBuilding(buildingId);
+      this.carePanel.toggle();
+      document.getElementById('panel-overlay').classList.add('visible');
+    });
+
     // Shop events
     this.bus.on('shop:buyAnimal', ({ animalType }) => {
       this._buyAnimalForBuilding(animalType);
@@ -269,26 +276,32 @@ export class GameEngine {
   }
 
   _bindUIButtons() {
+    const overlay = document.getElementById('panel-overlay');
     document.getElementById('btn-shop').addEventListener('click', () => {
       this._closePanels();
       this.shopPanel.toggle();
+      overlay.classList.add('visible');
     });
     document.getElementById('btn-market').addEventListener('click', () => {
       this._closePanels();
       this.marketPanel.toggle();
+      overlay.classList.add('visible');
     });
     document.getElementById('btn-care').addEventListener('click', () => {
       this._closePanels();
       this.carePanel.resetBuilding();
       this.carePanel.toggle();
+      overlay.classList.add('visible');
     });
     document.getElementById('btn-inventory').addEventListener('click', () => {
       this._closePanels();
       this.inventoryPanel.toggle();
+      overlay.classList.add('visible');
     });
     document.getElementById('btn-achievements').addEventListener('click', () => {
       this._closePanels();
       this.achievementPanel.toggle();
+      overlay.classList.add('visible');
     });
     document.getElementById('btn-reset').addEventListener('click', () => {
       if (confirm('確定要重置遊戲嗎？所有進度將清除！')) {

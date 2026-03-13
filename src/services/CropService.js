@@ -32,8 +32,9 @@ export class CropService {
   tick(deltaMs) {
     for (const crop of Object.values(this._state.crops)) {
       if (!crop.harvested) {
+        const wasReady = crop.isReady;
         crop.tick(deltaMs);
-        if (crop.isReady) {
+        if (!wasReady && crop.isReady) {
           this._bus.emit('crop:ready', { cropId: crop.id, cropType: crop.type });
         }
       }

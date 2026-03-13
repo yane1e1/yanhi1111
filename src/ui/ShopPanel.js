@@ -9,7 +9,8 @@ export class ShopPanel {
     this._bus = eventBus;
     this._panel = document.getElementById('shop-panel');
     this._render();
-    this._bus.on('coins:changed', () => this._render());
+    this._bus.on('resource:sold', () => this._render());
+    this._bus.on('feed:bought', () => this._render());
   }
 
   toggle() {
