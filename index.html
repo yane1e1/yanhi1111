@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐄 動物農場遊戲</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/farm-map.css" />
+  <link rel="stylesheet" href="css/ui.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HUD ===== -->
+  <header id="hud">
+    <span id="hud-title">🐄 動物農場</span>
+    <span id="hud-coins">💰 200</span>
+    <span id="hud-feed-display">🌿 0</span>
+    <span id="hud-level">⭐ Lv.1</span>
+    <div id="exp-bar-wrap" title="經驗值">
+      <div id="hud-exp" style="width:0%"></div>
+    </div>
+  </header>
+
+  <!-- ===== Game Area ===== -->
+  <main id="game-area">
+    <!-- Action hint bar -->
+    <div id="action-hint-bar">
+      <span id="action-hint"></span>
+    </div>
+
+    <!-- Farm map -->
+    <div id="farm-wrap">
+      <div id="farm-grid"></div>
+    </div>
+  </main>
+
+  <!-- ===== Toolbar ===== -->
+  <nav id="toolbar">
+    <button class="toolbar-btn" id="btn-shop">🛒 商店</button>
+    <button class="toolbar-btn" id="btn-market">🏪 市場</button>
+    <button class="toolbar-btn" id="btn-care">🐾 照料</button>
+    <button class="toolbar-btn" id="btn-inventory">🎒 倉庫</button>
+    <button class="toolbar-btn" id="btn-achievements">🏆 成就</button>
+    <button class="toolbar-btn" id="btn-reset">🔄 重置</button>
+  </nav>
+
+</div><!-- #app -->
+
+<!-- ===== Side Panels ===== -->
+<div id="panel-overlay"></div>
+
+<div id="shop-panel"        class="side-panel"></div>
+<div id="market-panel"      class="side-panel"></div>
+<div id="care-panel"        class="side-panel"></div>
+<div id="inventory-panel"   class="side-panel"></div>
+<div id="achievement-panel" class="side-panel"></div>
+
+<!-- ===== Toast Notifications ===== -->
+<div id="notifications"></div>
+
+<!-- ===== Game Bootstrap ===== -->
+<script type="module">
+  import { GameEngine } from './src/core/GameEngine.js';
+  const engine = new GameEngine();
+  engine.init();
+  // Expose for debugging
+  window.__game = engine;
+</script>
+</body>
+</html>
