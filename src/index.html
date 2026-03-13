@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐾 動物農場遊戲</title>
+  <meta name="description" content="A browser-based animal farm simulation game">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ── HUD ────────────────────────────────────────────────── -->
+  <header id="hud">
+    <span id="hud-coins">💰 500</span>
+    <span id="hud-level">⭐ Lv.1</span>
+    <div id="hud-xp-container">
+      <div id="hud-xp-bar" style="width:0%"></div>
+      <span id="hud-xp-text">0 / 100 XP</span>
+    </div>
+    <span id="hud-feed-warn" style="display:none">⚠️ 飼料不足</span>
+    <div class="hud-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-open-shop">🛒 商店</button>
+      <select id="speed-select" class="btn btn-ghost btn-sm" title="遊戲速度">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="5">5×</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" id="btn-reset" title="重置遊戲">🔄</button>
+    </div>
+  </header>
+
+  <!-- ── Main content ───────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Farm tab -->
+    <section id="tab-farm" class="tab-panel active">
+      <div id="farm-section">
+        <h2>🌾 我的農場</h2>
+        <div id="farm-actions">
+          <button class="btn btn-primary btn-sm" id="btn-expand">🗺️ 擴大農場</button>
+        </div>
+        <div id="farm-grid"></div>
+      </div>
+    </section>
+
+    <!-- Inventory tab -->
+    <section id="tab-inventory" class="tab-panel">
+      <h2 style="padding:0 0 12px;color:var(--green-dark)">📦 倉庫庫存</h2>
+      <div id="inventory-list"></div>
+    </section>
+
+    <!-- Market tab -->
+    <section id="tab-market" class="tab-panel">
+      <h2 style="padding:0 0 12px;color:var(--green-dark)">💹 資源市場</h2>
+      <div id="market-list"></div>
+    </section>
+
+    <!-- Achievements tab -->
+    <section id="tab-achievements" class="tab-panel">
+      <h2 style="padding:0 0 12px;color:var(--green-dark)">🏆 成就系統</h2>
+      <div id="achievement-list"></div>
+    </section>
+
+  </main>
+
+  <!-- ── Bottom tab navigation ───────────────────────────────── -->
+  <nav id="tab-nav">
+    <button class="tab-btn active" data-tab="tab-farm">
+      <span class="tab-icon">🌾</span>農場
+    </button>
+    <button class="tab-btn" data-tab="tab-inventory">
+      <span class="tab-icon">📦</span>倉庫
+    </button>
+    <button class="tab-btn" data-tab="tab-market">
+      <span class="tab-icon">💹</span>市場
+    </button>
+    <button class="tab-btn" data-tab="tab-achievements">
+      <span class="tab-icon">🏆</span>成就
+    </button>
+  </nav>
+
+  <!-- ── Modal overlay ──────────────────────────────────────── -->
+  <div id="modal-overlay"></div>
+
+  <!-- ── Shop Modal ─────────────────────────────────────────── -->
+  <div id="shop-modal" class="modal">
+    <div class="modal-header">
+      <h2>🛒 農場商店</h2>
+      <button class="modal-close" id="shop-close">✕</button>
+    </div>
+    <div class="shop-tabs">
+      <button class="shop-tab-btn active" data-tab="shop-animals-tab">🐾 動物</button>
+      <button class="shop-tab-btn" data-tab="shop-buildings-tab">🏗️ 設施</button>
+      <button class="shop-tab-btn" data-tab="shop-seeds-tab">🌱 種子</button>
+      <button class="shop-tab-btn" data-tab="shop-feed-tab">🌾 飼料</button>
+    </div>
+    <div id="shop-animals-tab" class="shop-tab-panel active">
+      <div id="shop-animals"></div>
+    </div>
+    <div id="shop-buildings-tab" class="shop-tab-panel">
+      <div id="shop-buildings"></div>
+    </div>
+    <div id="shop-seeds-tab" class="shop-tab-panel">
+      <div id="shop-seeds"></div>
+    </div>
+    <div id="shop-feed-tab" class="shop-tab-panel">
+      <div id="shop-feed"></div>
+    </div>
+  </div>
+
+  <!-- ── Tile Action Modal ───────────────────────────────────── -->
+  <div id="tile-action-modal" class="modal">
+    <div class="modal-header">
+      <h2>操作選單</h2>
+      <button class="modal-close" id="tile-action-close">✕</button>
+    </div>
+    <div id="tile-action-content"></div>
+  </div>
+
+  <!-- ── Tutorial Modal ─────────────────────────────────────── -->
+  <div id="tutorial-modal" class="modal">
+    <div class="modal-header">
+      <h2>🐾 歡迎來到動物農場！</h2>
+      <button class="modal-close" id="tutorial-close">✕</button>
+    </div>
+    <div>
+      <div class="tutorial-step">
+        <h3>1️⃣ 建設設施</h3>
+        <p>點擊農場上的 <strong>空地 (+)</strong> 可以選擇建設設施。先去商店 🛒 選擇「設施」購買雞舍、牛棚等。</p>
+      </div>
+      <div class="tutorial-step">
+        <h3>2️⃣ 購買動物</h3>
+        <p>在商店的「動物」頁面購買動物，然後點擊農場上的設施將動物放入。</p>
+      </div>
+      <div class="tutorial-step">
+        <h3>3️⃣ 等待並收集</h3>
+        <p>動物會自動產出資源（雞蛋、牛奶等）。當設施角落出現 <strong style="color:var(--green)">!</strong> 標記時，點擊收集資源。</p>
+      </div>
+      <div class="tutorial-step">
+        <h3>4️⃣ 出售賺取金幣</h3>
+        <p>前往「市場」頁面或「倉庫」頁面出售資源換取金幣，購買更多動物和設施！</p>
+      </div>
+      <div class="tutorial-step">
+        <h3>5️⃣ 記得餵食！</h3>
+        <p>動物需要定期餵食。先在商店買飼料，再點擊設施選擇「餵食動物」，保持動物健康才能持續產出。</p>
+      </div>
+      <div class="tutorial-step">
+        <h3>🌱 種植作物</h3>
+        <p>購買種子後，點擊空地可以種植作物。作物成熟後點擊收穫，可以作為飼料使用或出售。</p>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="tutorial-start" style="margin-top:14px;width:100%">開始遊戲！🚀</button>
+  </div>
+
+  <!-- ── Toast container ────────────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── Scripts (load order matters) ──────────────────────── -->
+  <script src="js/config.js"></script>
+  <script src="js/models/player.js"></script>
+  <script src="js/models/animal.js"></script>
+  <script src="js/models/building.js"></script>
+  <script src="js/models/crop.js"></script>
+  <script src="js/models/achievement.js"></script>
+  <script src="js/services/saveService.js"></script>
+  <script src="js/services/achievementService.js"></script>
+  <script src="js/services/farmService.js"></script>
+  <script src="js/services/animalService.js"></script>
+  <script src="js/services/cropService.js"></script>
+  <script src="js/services/marketService.js"></script>
+  <script src="js/services/gameService.js"></script>
+  <script src="js/ui/hudUI.js"></script>
+  <script src="js/ui/farmMapUI.js"></script>
+  <script src="js/ui/inventoryUI.js"></script>
+  <script src="js/ui/marketUI.js"></script>
+  <script src="js/ui/achievementUI.js"></script>
+  <script src="js/ui/shopUI.js"></script>
+  <script src="js/ui/app.js"></script>
+
+</body>
+</html>
