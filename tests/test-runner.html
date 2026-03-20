@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>Animal Farm — Test Runner</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { color: #2e7d32; }
+    .suite { margin: 16px 0; background: #fff; border-radius: 8px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .suite h2 { font-size: 1rem; border-bottom: 1px solid #eee; margin-bottom: 8px; padding-bottom: 4px; }
+    .test { padding: 4px 8px; margin: 2px 0; border-radius: 4px; font-size: 0.85rem; }
+    .pass { background: #e8f5e9; color: #1b5e20; }
+    .fail { background: #ffebee; color: #b71c1c; }
+    #summary { margin-top: 16px; font-size: 1rem; font-weight: 700; }
+    .ok  { color: #2e7d32; }
+    .bad { color: #c62828; }
+  </style>
+</head>
+<body>
+<h1>🧪 動物農場 — 單元測試</h1>
+<div id="output"></div>
+<div id="summary"></div>
+
+<script type="module">
+// ===== Minimal test framework =====
+const results = [];
+const suites = [];
+let currentSuite = null;
+
+function describe(name, fn) {
+  currentSuite = { name, tests: [] };
+  suites.push(currentSuite);
+  fn();
+  currentSuite = null;
+}
+
+function it(name, fn) {
+  const suite = currentSuite;
+  try {
+    fn();
+    suite.tests.push({ name, pass: true });
+  } catch (e) {
+    suite.tests.push({ name, pass: false, error: e.message });
+  }
+}
+
+function expect(val) {
+  return {
+    toBe(expected) {
+      if (val !== expected) throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(val)}`);
+    },
+    toEqual(expected) {
+      if (JSON.stringify(val) !== JSON.stringify(expected)) throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(val)}`);
+    },
+    toBeGreaterThan(n) {
+      if (!(val > n)) throw new Error(`Expected ${val} > ${n}`);
+    },
+    toBeGreaterThanOrEqual(n) {
+      if (!(val >= n)) throw new Error(`Expected ${val} >= ${n}`);
+    },
+    toBeLessThan(n) {
+      if (!(val < n)) throw new Error(`Expected ${val} < ${n}`);
+    },
+    toBeTruthy() {
+      if (!val) throw new Error(`Expected truthy, got ${val}`);
+    },
+    toBeFalsy() {
+      if (val) throw new Error(`Expected falsy, got ${val}`);
+    },
+    toContain(item) {
+      if (!val.includes(item)) throw new Error(`Expected array to contain ${item}`);
+    },
+  };
+}
+
+// ===== Imports =====
+import { EventBus } from '../src/core/EventBus.js';
+import { Player } from '../src/models/Player.js';
+import { Animal } from '../src/models/Animal.js';
+import { Building } from '../src/models/Building.js';
+import { Crop } from '../src/models/Crop.js';
+import { Achievement } from '../src/models/Achievement.js';
+import { GameState } from '../src/services/GameState.js';
+import { ProductionService } from '../src/services/ProductionService.js';
+import { FeedingService } from '../src/services/FeedingService.js';
+import { CropService } from '../src/services/CropService.js';
+import { MarketService } from '../src/services/MarketService.js';
+import { AchievementService } from '../src/services/AchievementService.js';
+import { ANIMALS } from '../src/config/animals.js';
+import { BUILDINGS } from '../src/config/buildings.js';
+import { CROPS } from '../src/config/crops.js';
+import { ACHIEVEMENTS } from '../src/config/achievements.js';
+
+// ===== Tests =====
+
+describe('EventBus', () => {
+  it('should emit events to subscribers', () => {
+    const bus = new EventBus();
+    let received = null;
+    bus.on('test', (d) => { received = d; });
+    bus.emit('test', { value: 42 });
+    expect(received.value).toBe(42);
+  });
+
+  it('should allow unsubscribing', () => {
+    const bus = new EventBus();
+    let count = 0;
+    const handler = () => count++;
+    bus.on('evt', handler);
+    bus.emit('evt');
+    bus.off('evt', handler);
+    bus.emit('evt');
+    expect(count).toBe(1);
+  });
+
+  it('should not crash on unknown event emit', () => {
+    const bus = new EventBus();
+    bus.emit('nothing'); // should not throw
+    expect(true).toBeTruthy();
+  });
+});
+
+describe('Player', () => {
+  it('starts with 200 coins', () => {
+    const p = new Player();
+    expect(p.coins).toBe(200);
+  });
+
+  it('addCoins increases balance', () => {
+    const p = new Player();
+    p.addCoins(50);
+    expect(p.coins).toBe(250);
+  });
+
+  it('spendCoins deducts correctly', () => {
+    const p = new Player();
+    const ok = p.spendCoins(100);
+    expect(ok).toBeTruthy();
+    expect(p.coins).toBe(100);
+  });
+
+  it('spendCoins fails when insufficient', () => {
+    const p = new Player();
+    const ok = p.spendCoins(999);
+    expect(ok).toBeFalsy();
+    expect(p.coins).toBe(200);
+  });
+
+  it('addResource adds to inventory', () => {
+    const p = new Player();
+    p.addResource('egg', 3);
+    expect(p.getResource('egg')).toBe(3);
+  });
+
+  it('removeResource succeeds when enough', () => {
+    const p = new Player();
+    p.addResource('egg', 5);
+    const ok = p.removeResource('egg', 3);
+    expect(ok).toBeTruthy();
+    expect(p.getResource('egg')).toBe(2);
+  });
+
+  it('removeResource fails when insufficient', () => {
+    const p = new Player();
+    p.addResource('egg', 1);
+    const ok = p.removeResource('egg', 5);
+    expect(ok).toBeFalsy();
+    expect(p.getResource('egg')).toBe(1);
+  });
+
+  it('tracks totalCoinsEarned correctly', () => {
+    const p = new Player();
+    p.addCoins(100);
+    p.addCoins(200);
+    expect(p.stats.totalCoinsEarned).toBe(300);
+  });
+
+  it('level up on experience', () => {
+    const p = new Player();
+    const leveled = p.addExperience(200);
+    expect(leveled).toBeTruthy();
+    expect(p.level).toBe(2);
+  });
+
+  it('serializes and restores correctly', () => {
+    const p = new Player({ coins: 500 });
+    p.addResource('milk', 3);
+    const data = p.serialize();
+    const p2 = new Player(data);
+    expect(p2.coins).toBe(500);
+    expect(p2.getResource('milk')).toBe(3);
+  });
+});
+
+describe('Animal', () => {
+  it('starts healthy with full hunger', () => {
+    const a = new Animal({ type: 'chicken' });
+    expect(a.health).toBe(100);
+    expect(a.hunger).toBe(100);
+    expect(a.state).toBe('healthy');
+  });
+
+  it('becomes hungry when hunger < 50', () => {
+    const a = new Animal({ type: 'chicken', hunger: 40 });
+    expect(a.state).toBe('hungry');
+    expect(a.productionEfficiency).toBe(0.5);
+  });
+
+  it('stops production when starving', () => {
+    const a = new Animal({ type: 'chicken', hunger: 10 });
+    expect(a.state).toBe('starving');
+    expect(a.productionEfficiency).toBe(0);
+  });
+
+  it('tick produces resources after production time', () => {
+    const a = new Animal({ type: 'chicken' });
+    const productionTime = ANIMALS.chicken.productionTime;
+    const produced = a.tick(productionTime + 1);
+    expect(produced).toBeGreaterThanOrEqual(1);
+  });
+
+  it('tick does not produce if starving', () => {
+    const a = new Animal({ type: 'chicken', hunger: 10 });
+    const produced = a.tick(10000);
+    expect(produced).toBe(0);
+  });
+
+  it('feeding restores hunger', () => {
+    const a = new Animal({ type: 'chicken', hunger: 20 });
+    a.feed(30);
+    expect(a.hunger).toBeGreaterThan(20);
+  });
+
+  it('serializes and restores', () => {
+    const a = new Animal({ type: 'cow', hunger: 60 });
+    const data = a.serialize();
+    const a2 = new Animal(data);
+    expect(a2.type).toBe('cow');
+    expect(a2.hunger).toBe(60);
+  });
+});
+
+describe('Building', () => {
+  it('starts at level 1 with correct capacity', () => {
+    const b = new Building({ type: 'henhouse' });
+    expect(b.level).toBe(1);
+    expect(b.capacity).toBe(3);
+  });
+
+  it('addAnimal succeeds when not full', () => {
+    const b = new Building({ type: 'henhouse' });
+    expect(b.addAnimal('a1')).toBeTruthy();
+    expect(b.animalIds.length).toBe(1);
+  });
+
+  it('addAnimal fails when full', () => {
+    const b = new Building({ type: 'henhouse' });
+    b.addAnimal('a1'); b.addAnimal('a2'); b.addAnimal('a3');
+    expect(b.isFull).toBeTruthy();
+    expect(b.addAnimal('a4')).toBeFalsy();
+  });
+
+  it('upgrade increases capacity', () => {
+    const b = new Building({ type: 'henhouse' });
+    b.upgrade();
+    expect(b.level).toBe(2);
+    expect(b.capacity).toBe(6);
+  });
+
+  it('cannot upgrade beyond max level', () => {
+    const b = new Building({ type: 'henhouse' });
+    b.upgrade(); b.upgrade(); // now level 3
+    expect(b.canUpgrade).toBeFalsy();
+    expect(b.upgrade()).toBeFalsy();
+  });
+
+  it('serializes and restores', () => {
+    const b = new Building({ type: 'barn' });
+    b.addAnimal('cow1');
+    const data = b.serialize();
+    const b2 = new Building(data);
+    expect(b2.type).toBe('barn');
+    expect(b2.animalIds).toContain('cow1');
+  });
+});
+
+describe('Crop', () => {
+  it('starts with zero progress', () => {
+    const c = new Crop({ type: 'wheat' });
+    expect(c.progress).toBe(0);
+    expect(c.isReady).toBeFalsy();
+  });
+
+  it('becomes ready after growthTime', () => {
+    const c = new Crop({ type: 'wheat' });
+    c.tick(CROPS.wheat.growthTime + 1);
+    expect(c.isReady).toBeTruthy();
+  });
+
+  it('harvest returns correct feedYield', () => {
+    const c = new Crop({ type: 'wheat' });
+    c.tick(CROPS.wheat.growthTime + 1);
+    const yield_ = c.harvest();
+    expect(yield_).toBe(CROPS.wheat.feedYield);
+    expect(c.harvested).toBeTruthy();
+  });
+
+  it('cannot harvest if not ready', () => {
+    const c = new Crop({ type: 'corn' });
+    expect(c.harvest()).toBe(0);
+  });
+});
+
+describe('GameState', () => {
+  it('initializes with player starting coins', () => {
+    const gs = new GameState();
+    expect(gs.player.coins).toBe(200);
+  });
+
+  it('serializes and restores via fromSave', () => {
+    const gs = new GameState();
+    gs.player.addCoins(300);
+    const data = gs.serialize();
+    const gs2 = GameState.fromSave(data);
+    expect(gs2.player.coins).toBe(500);
+  });
+
+  it('getAchievementStats returns correct animal count', () => {
+    const gs = new GameState();
+    const b = new Building({ type: 'henhouse' });
+    gs.buildings[b.id] = b;
+    const a1 = new Animal({ type: 'chicken', buildingId: b.id });
+    const a2 = new Animal({ type: 'chicken', buildingId: b.id });
+    gs.animals[a1.id] = a1;
+    gs.animals[a2.id] = a2;
+    b.addAnimal(a1.id);
+    b.addAnimal(a2.id);
+    const stats = gs.getAchievementStats();
+    expect(stats.totalAnimals).toBe(2);
+  });
+});
+
+describe('ProductionService', () => {
+  it('produces resources when animal ticks enough time', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const b = new Building({ type: 'henhouse' });
+    gs.buildings[b.id] = b;
+    const a = new Animal({ type: 'chicken', buildingId: b.id });
+    gs.animals[a.id] = a;
+    b.addAnimal(a.id);
+
+    const svc = new ProductionService(gs, bus);
+    svc.tick(ANIMALS.chicken.productionTime + 1);
+    expect(gs.player.getResource('egg')).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('MarketService', () => {
+  it('sellResource adds coins when player has inventory', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('egg', 5);
+    const svc = new MarketService(gs, bus);
+    const result = svc.sellResource('egg', 3);
+    expect(result.success).toBeTruthy();
+    expect(gs.player.coins).toBe(200 + 3 * 8); // 8 coins per egg
+    expect(gs.player.getResource('egg')).toBe(2);
+  });
+
+  it('sellResource fails when no inventory', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const svc = new MarketService(gs, bus);
+    const result = svc.sellResource('egg', 1);
+    expect(result.success).toBeFalsy();
+  });
+
+  it('buyFeed deducts coins and adds feed', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const svc = new MarketService(gs, bus);
+    const result = svc.buyFeed(3);
+    expect(result.success).toBeTruthy();
+    expect(gs.player.getResource('feed')).toBe(3);
+    expect(gs.player.coins).toBe(200 - 3 * 5);
+  });
+});
+
+describe('FeedingService', () => {
+  it('feeds an animal correctly', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('feed', 5);
+    const a = new Animal({ type: 'chicken', hunger: 30 });
+    gs.animals[a.id] = a;
+    const svc = new FeedingService(gs, bus);
+    const result = svc.feedAnimal(a.id, 1);
+    expect(result.success).toBeTruthy();
+    expect(a.hunger).toBeGreaterThan(30);
+    expect(gs.player.getResource('feed')).toBe(4);
+  });
+
+  it('fails when no feed', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const a = new Animal({ type: 'chicken' });
+    gs.animals[a.id] = a;
+    const svc = new FeedingService(gs, bus);
+    const result = svc.feedAnimal(a.id, 1);
+    expect(result.success).toBeFalsy();
+  });
+
+  it('tracks feeding stats', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('feed', 10);
+    const a = new Animal({ type: 'chicken' });
+    gs.animals[a.id] = a;
+    const svc = new FeedingService(gs, bus);
+    svc.feedAnimal(a.id);
+    svc.feedAnimal(a.id);
+    expect(gs.player.stats.totalFeedingActions).toBe(2);
+  });
+});
+
+describe('CropService', () => {
+  it('plants crop on free tile', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const svc = new CropService(gs, bus);
+    const result = svc.plantCrop('wheat', 0);
+    expect(result.success).toBeTruthy();
+    expect(gs.tiles[0]).toBeTruthy();
+    expect(gs.player.coins).toBe(200 - CROPS.wheat.seedCost);
+  });
+
+  it('fails to plant on occupied tile', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const svc = new CropService(gs, bus);
+    svc.plantCrop('wheat', 0);
+    const result = svc.plantCrop('corn', 0);
+    expect(result.success).toBeFalsy();
+  });
+
+  it('harvest adds feed to player', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    const svc = new CropService(gs, bus);
+    svc.plantCrop('wheat', 0);
+    const cropId = gs.tiles[0];
+    gs.crops[cropId].growthTimer = CROPS.wheat.growthTime + 1; // force ready
+    const result = svc.harvestCrop(cropId);
+    expect(result.success).toBeTruthy();
+    expect(gs.player.getResource('feed')).toBe(CROPS.wheat.feedYield);
+  });
+});
+
+describe('AchievementService', () => {
+  it('unlocks first_harvest achievement', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('egg', 1); // triggers totalResourcesCollected = 1
+    const svc = new AchievementService(gs, bus);
+    svc.check();
+    const ach = gs.achievements.find((a) => a.id === 'first_harvest');
+    expect(ach.unlocked).toBeTruthy();
+  });
+
+  it('grants reward coins when achievement unlocked', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('egg', 1);
+    const svc = new AchievementService(gs, bus);
+    const before = gs.player.coins;
+    svc.check();
+    const ach = gs.achievements.find((a) => a.id === 'first_harvest');
+    expect(gs.player.coins).toBe(before + ach.reward);
+  });
+
+  it('does not double-unlock same achievement', () => {
+    const bus = new EventBus();
+    const gs = new GameState();
+    gs.player.addResource('egg', 1);
+    const svc = new AchievementService(gs, bus);
+    const before = gs.player.coins;
+    svc.check();
+    const afterFirst = gs.player.coins;
+    svc.check();
+    expect(gs.player.coins).toBe(afterFirst); // no second reward
+  });
+});
+
+// ===== Render results =====
+const output = document.getElementById('output');
+let totalPass = 0, totalFail = 0;
+
+for (const suite of suites) {
+  const div = document.createElement('div');
+  div.className = 'suite';
+  div.innerHTML = `<h2>${suite.name}</h2>`;
+  for (const t of suite.tests) {
+    const p = document.createElement('div');
+    p.className = `test ${t.pass ? 'pass' : 'fail'}`;
+    p.textContent = `${t.pass ? '✅' : '❌'} ${t.name}${t.error ? ' — ' + t.error : ''}`;
+    div.appendChild(p);
+    if (t.pass) totalPass++; else totalFail++;
+  }
+  output.appendChild(div);
+}
+
+const summary = document.getElementById('summary');
+summary.innerHTML = `結果: <span class="${totalFail === 0 ? 'ok' : 'bad'}">${totalPass} 通過 / ${totalFail} 失敗 / 共 ${totalPass + totalFail} 項</span>`;
+</script>
+</body>
+</html>

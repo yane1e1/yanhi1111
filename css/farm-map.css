@@ -1,0 +1,104 @@
+/* ====== Farm Grid ====== */
+#farm-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  background: #6a9e3a;
+  border: 4px solid #4a7a2a;
+  border-radius: var(--radius);
+  padding: 6px;
+  box-shadow: var(--shadow);
+  width: min(calc(100vw - 24px), 620px);
+  aspect-ratio: 1;
+}
+
+/* ====== Farm Tiles ====== */
+.farm-tile {
+  background: #8bc34a;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.6rem;
+  text-align: center;
+  transition: filter 0.15s, transform 0.1s;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 2px;
+}
+
+.farm-tile:hover { filter: brightness(1.12); transform: scale(1.04); }
+
+.farm-tile.empty {
+  background: repeating-linear-gradient(
+    45deg,
+    #8bc34a 0px, #8bc34a 4px,
+    #7cb33a 4px, #7cb33a 8px
+  );
+}
+
+.farm-tile.placeable {
+  background: #c5e1a5;
+  border: 2px dashed var(--color-primary);
+  animation: pulse-placeable 1s infinite alternate;
+}
+
+.farm-tile.building-tile {
+  background: var(--tile-color, #a1887f);
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+.farm-tile.crop-tile {
+  background: #a5d6a7;
+}
+
+.farm-tile.crop-tile.ready {
+  background: #fff9c4;
+  border: 2px solid var(--color-accent);
+  animation: pulse-ready 0.8s infinite alternate;
+}
+
+.farm-tile.has-hungry::after {
+  content: '⚠️';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font-size: 0.55rem;
+}
+
+/* ====== Tile Inner Content ====== */
+.tile-emoji { font-size: 1.2rem; line-height: 1; }
+.tile-name  { font-size: 0.45rem; color: rgba(255,255,255,0.9); font-weight: 600; }
+.tile-level { font-size: 0.4rem; color: rgba(255,255,255,0.8); }
+.tile-count { font-size: 0.4rem; color: rgba(255,255,255,0.8); }
+
+.harvest-badge {
+  background: #ffeb3b;
+  color: #333;
+  font-size: 0.4rem;
+  font-weight: bold;
+  padding: 1px 3px;
+  border-radius: 3px;
+  animation: bounce 0.6s infinite alternate;
+}
+
+/* ====== Progress Bar (crop growth) ====== */
+.progress-bar {
+  width: 80%;
+  height: 3px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+
+.progress-bar > div {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 2px;
+  transition: width 0.5s;
+}
